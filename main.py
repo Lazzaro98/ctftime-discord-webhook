@@ -2,8 +2,9 @@
 
 import os
 
-import re
+import datetime
 import requests
+import pytz
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 
@@ -44,6 +45,8 @@ change = ":arrow_right:"
 position_norway = scrape_website()
 change_norway = ":arrow_right:"
 
+time_now = pytz.timezone(
+    "Europe/Oslo").localize(datetime.datetime.now()).isoformat()
 
 last_rating = {
     "world": "get from database",
@@ -55,6 +58,7 @@ post_discord_message({
     "embeds": [{
         "title": "CTFTime ranking update",
         "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
+        "timestamp": time_now,
         "fields": [{
             "name": "Last checked",
             "value": f"Save this to a database or something",
