@@ -43,6 +43,11 @@ change = ":arrow_right:"
 position_norway = scrape_website()
 change_norway = ":arrow_right:"
 
+last_rating = {
+    "world": "get from database",
+    "norway": "get from database"
+}
+
 post_discord_message({
     "username": f"CTFTime",
     "embeds": [{
@@ -50,11 +55,11 @@ post_discord_message({
         "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
         "fields": [{
             "name": "Last checked",
-            "value": "Save this to a database or something",
+            "value": f"Save this to a database or something",
             "inline": "True"
         }, {
             "name": "Last rating",
-            "value": "Save this to a database or something",
+            "value": f"World: {last_rating['world']}\nNorway: {last_rating['norway']}",
             "inline": "True"
         }]
     }]
