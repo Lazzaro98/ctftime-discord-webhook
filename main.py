@@ -37,11 +37,7 @@ def post_discord_message(data):
     requests.post(DISCORD_WEBHOOK_URL, json=data)
 
 
-
 position = get_rating_place()
-
-print(f"World position: {position}")
-
 change = ":arrow_right:"
 
 position_norway = scrape_website()
