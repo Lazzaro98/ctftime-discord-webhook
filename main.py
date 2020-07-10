@@ -16,6 +16,7 @@ HEADERS = {"User-Agent": "Corax"}
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
+
 def scrape_website():
     """Downloads the website and scapes the rating"""
     page = requests.get(CTFTIME_URL, headers=HEADERS)
@@ -42,6 +43,7 @@ change = ":arrow_right:"
 
 position_norway = scrape_website()
 change_norway = ":arrow_right:"
+
 
 last_rating = {
     "world": "get from database",
