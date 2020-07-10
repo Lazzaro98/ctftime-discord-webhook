@@ -2,20 +2,33 @@
 
 import os
 
+import re
 import requests
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 load_dotenv()
 
-CTFTIME_URL = "https://ctftime.org/api/v1/teams/113107/"
+CTFTIME_API_URL = "https://ctftime.org/api/v1/teams/113107/"
+CTFTIME_URL = "https://ctftime.org/team/113107"
+
 HEADERS = {"User-Agent": "Corax"}
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
+def scrape_website():
+    """Downloads the website and scapes the rating"""
+    page = requests.get(CTFTIME_URL, headers=HEADERS)
+    soup = BeautifulSoup(page.content, "html.parser")
+    rating_div = soup.find(id="rating_2020")
+    rating_a = str(rating_div.select('a[href="/stats/NO"]')[0])
+    rating_a = rating_a.replace('<a href="/stats/NO">', "").replace("</a>", "")
+    return rating_a
+
 
 def get_rating_place():
     """Parses the JSON and gets the data"""
-    response = requests.get(CTFTIME_URL, headers=HEADERS)
+    response = requests.get(CTFTIME_API_URL, headers=HEADERS)
     return response.json()["rating"][0]["2020"]["rating_place"]
 
 
@@ -24,13 +37,14 @@ def post_discord_message(data):
     requests.post(DISCORD_WEBHOOK_URL, json=data)
 
 
+
 position = get_rating_place()
 
 print(f"World position: {position}")
 
 change = ":arrow_right:"
 
-position_norway = "Who knows?"
+position_norway = scrape_website()
 change_norway = ":arrow_right:"
 
 post_discord_message({
