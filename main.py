@@ -21,26 +21,31 @@ def get_rating_place():
 
 def post_discord_message(data):
     """Posts to the discord webhook url"""
-    requests.post(DISCORD_WEBHOOK_URL, data=data)
+    requests.post(DISCORD_WEBHOOK_URL, json=data)
 
 
 position = get_rating_place()
 
+print(f"World position: {position}")
+
 change = ":arrow_right:"
+
+position_norway = "Who knows?"
+change_norway = ":arrow_right:"
 
 post_discord_message({
     "username": f"CTFTime",
     "embeds": [{
         "title": "CTFTime ranking update",
-        "description": f"{change} {position}",
+        "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
         "fields": [{
             "name": "Last checked",
             "value": "Save this to a database or something",
-            "inline": True
+            "inline": "True"
         }, {
             "name": "Last rating",
             "value": "Save this to a database or something",
-            "inline": True
+            "inline": "True"
         }]
     }]
 })
