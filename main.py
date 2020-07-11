@@ -1,14 +1,19 @@
 #!/usr/bin/python3
 
+import datetime
 import os
 
-import datetime
-import requests
 import pytz
-from dotenv import load_dotenv
+import requests
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import pymongo
 
 load_dotenv()
+
+client = pymongo.MongoClient(os.getenv("MONGODB_CONNECTION_URL"))
+db = client.Corax
+collection = db.ctftime_history
 
 CTFTIME_API_URL = "https://ctftime.org/api/v1/teams/113107/"
 CTFTIME_URL = "https://ctftime.org/team/113107"
@@ -25,13 +30,13 @@ def scrape_website():
     rating_div = soup.find(id="rating_2020")
     rating_a = str(rating_div.select('a[href="/stats/NO"]')[0])
     rating_a = rating_a.replace('<a href="/stats/NO">', "").replace("</a>", "")
-    return rating_a
+    return int(rating_a)
 
 
-def get_rating_place():
+def get_world_rating():
     """Parses the JSON and gets the data"""
     response = requests.get(CTFTIME_API_URL, headers=HEADERS)
-    return response.json()["rating"][0]["2020"]["rating_place"]
+    return int(response.json()["rating"][0]["2020"]["rating_place"])
 
 
 def post_discord_message(data):
@@ -39,34 +44,79 @@ def post_discord_message(data):
     requests.post(DISCORD_WEBHOOK_URL, json=data)
 
 
-position = get_rating_place()
-change = ":arrow_right:"
+def main():
 
-position_norway = scrape_website()
-change_norway = ":arrow_right:"
+    last_entry = collection.find_one(sort=[("_id", pymongo.DESCENDING)])
+    try:
+        last_rating = {
+            "world": int(last_entry["world"]),
+            "norway": int(last_entry["norway"])
+        }
+    except TypeError:
+        last_rating = {
+            "world": "NO_DATA",
+            "norway": "NO_DATA"
+        }
 
-time_now = pytz.timezone(
-    "Europe/Oslo").localize(datetime.datetime.now()).isoformat()
+    position = get_world_rating()
+    if last_rating["world"] == "NO_DATA":
+        # Hvis vi mangler data
+        change = ":x:"
+    else:
+        if position > last_rating["world"]:
+            # Vi har falt
+            change = ":arrow_down:"
+        elif position < last_rating["world"]:
+            # Vi har gått opp
+            change = ":arrow_up:"
+        else:
+            # Ingen endring
+            change = ":arrow_right:"
 
-last_rating = {
-    "world": "get from database",
-    "norway": "get from database"
-}
+    position_norway = scrape_website()
+    if last_rating["norway"] == "NO_DATA":
+        change_norway = ":x:"
+    else:
+        if position_norway > last_rating["norway"]:
+            change_norway = ":arrow_down:"
+        elif position_norway < last_rating["norway"]:
+            change_norway = ":arrow_up:"
+        else:
+            change_norway = ":arrow_right:"
 
-post_discord_message({
-    "username": f"CTFTime",
-    "embeds": [{
-        "title": "CTFTime ranking update",
-        "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
-        "timestamp": time_now,
-        "fields": [{
-            "name": "Last checked",
-            "value": f"Save this to a database or something",
-            "inline": "True"
-        }, {
-            "name": "Last rating",
-            "value": f"World: {last_rating['world']}\nNorway: {last_rating['norway']}",
-            "inline": "True"
+    time_now = pytz.timezone(
+        "Europe/Oslo").localize(datetime.datetime.now().replace(microsecond=0)).isoformat()
+
+    try:
+        if last_entry["checked_at"] is None:
+            last_checked = "NO_DATA"
+        else:
+            last_checked = last_entry["checked_at"]
+    except TypeError:
+        last_checked = "NO_DATA"
+
+    post_discord_message({
+        "username": "CTFTime",
+        "avatar_url": "https://cdn.discordapp.com/attachments/719605546101113012/731453497479790672/ctftime.png",
+        "embeds": [{
+            "title": "CTFTime ranking update",
+            "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
+            "timestamp": time_now,
+            "fields": [{
+                "name": "Last checked",
+                "value": last_checked,
+                "inline": True
+            }, {
+                "name": "Last rating",
+                "value": f"World: {last_rating['world']}\nNorway: {last_rating['norway']}",
+                "inline": "True"
+            }]
         }]
-    }]
-})
+    })
+
+    collection.insert_one(
+        {"checked_at": time_now, "norway": position_norway, "world": position})
+
+
+if __name__ == "__main__":
+    main()
