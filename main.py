@@ -102,6 +102,7 @@ def main():
             "title": "CTFTime ranking update",
             "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
             "timestamp": time_now,
+            "color": 11610890,
             "fields": [{
                 "name": "Last checked",
                 "value": last_checked,
