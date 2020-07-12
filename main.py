@@ -1,13 +1,14 @@
 #!/usr/bin/python3
+"""Script to send an embed to a discord channel with CTFTime scores"""
 
 import datetime
 import os
 
+import pymongo
 import pytz
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-import pymongo
 
 load_dotenv()
 
@@ -20,6 +21,7 @@ TEAM_ID = "113107"
 HEADERS = {"User-Agent": "Corax"}
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+PFP_URL = "https://cdn.discordapp.com/attachments/719605546101113012/731453497479790672/ctftime.png"
 
 
 def scrape_website(team_id):
@@ -34,7 +36,8 @@ def scrape_website(team_id):
 
 def get_world_rating(team_id):
     """Parses the JSON and gets the data"""
-    response = requests.get(f"https://ctftime.org/api/v1/teams/{team_id}/", headers=HEADERS)
+    response = requests.get(
+        f"https://ctftime.org/api/v1/teams/{team_id}/", headers=HEADERS)
     print(response)
     return int(response.json()["rating"][0]["2020"]["rating_place"])
 
@@ -45,7 +48,7 @@ def post_discord_message(data):
 
 
 def main():
-
+    """The main function that will be ran when the script runs"""
     last_entry = collection.find_one(sort=[("_id", pymongo.DESCENDING)])
     try:
         last_rating = {
@@ -97,7 +100,7 @@ def main():
 
     post_discord_message({
         "username": "CTFTime",
-        "avatar_url": "https://cdn.discordapp.com/attachments/719605546101113012/731453497479790672/ctftime.png",
+        "avatar_url": DISCORD_WEBHOOK_URL,
         "embeds": [{
             "title": "CTFTime ranking update",
             "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
