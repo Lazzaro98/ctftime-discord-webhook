@@ -15,17 +15,16 @@ client = pymongo.MongoClient(os.getenv("MONGODB_CONNECTION_URL"))
 db = client.Corax
 collection = db.ctftime_history
 
-CTFTIME_API_URL = "https://ctftime.org/api/v1/teams/113107/"
-CTFTIME_URL = "https://ctftime.org/team/113107"
+TEAM_ID = "113107"
 
 HEADERS = {"User-Agent": "Corax"}
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 
-def scrape_website():
+def scrape_website(team_id):
     """Downloads the website and scapes the rating"""
-    page = requests.get(CTFTIME_URL, headers=HEADERS)
+    page = requests.get(f"https://ctftime.org/team/{team_id}", headers=HEADERS)
     soup = BeautifulSoup(page.content, "html.parser")
     rating_div = soup.find(id="rating_2020")
     rating_a = str(rating_div.select('a[href="/stats/NO"]')[0])
@@ -33,9 +32,10 @@ def scrape_website():
     return int(rating_a)
 
 
-def get_world_rating():
+def get_world_rating(team_id):
     """Parses the JSON and gets the data"""
-    response = requests.get(CTFTIME_API_URL, headers=HEADERS)
+    response = requests.get(f"https://ctftime.org/api/v1/teams/{team_id}/", headers=HEADERS)
+    print(response)
     return int(response.json()["rating"][0]["2020"]["rating_place"])
 
 
@@ -58,7 +58,7 @@ def main():
             "norway": "NO_DATA"
         }
 
-    position = get_world_rating()
+    position = get_world_rating(TEAM_ID)
     if last_rating["world"] == "NO_DATA":
         # Hvis vi mangler data
         change = ":x:"
@@ -73,7 +73,7 @@ def main():
             # Ingen endring
             change = ":arrow_right:"
 
-    position_norway = scrape_website()
+    position_norway = scrape_website(TEAM_ID)
     if last_rating["norway"] == "NO_DATA":
         change_norway = ":x:"
     else:
@@ -110,7 +110,7 @@ def main():
             }, {
                 "name": "Last rating",
                 "value": f"World: {last_rating['world']}\nNorway: {last_rating['norway']}",
-                "inline": "True"
+                "inline": True
             }]
         }]
     })
