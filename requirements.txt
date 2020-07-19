@@ -1,5 +1,6 @@
 requests
 python-dotenv
-beautifulsoup
+beautifulsoup4
 pytz
 dnspython
+pymongo
