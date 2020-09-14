@@ -13,8 +13,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = pymongo.MongoClient(os.getenv("MONGODB_CONNECTION_URL"))
-db = client.Corax
-collection = db.ctftime_history
+db = client.Corax  # ! Change this line to the correct collection name
+collection = db.ctftime_history  # ! Change this to be the correct table name
 
 TEAM_ID = "113107"
 
@@ -53,12 +53,12 @@ def main():
     try:
         last_rating = {
             "world": int(last_entry["world"]),
-            "norway": int(last_entry["norway"])
+            "region": int(last_entry["region"])
         }
     except TypeError:
         last_rating = {
             "world": "NO_DATA",
-            "norway": "NO_DATA"
+            "region": "NO_DATA"
         }
 
     position = get_world_rating(TEAM_ID)
@@ -76,16 +76,16 @@ def main():
             # Ingen endring
             change = ":arrow_right:"
 
-    position_norway = scrape_website(TEAM_ID)
-    if last_rating["norway"] == "NO_DATA":
-        change_norway = ":x:"
+    position_regional = scrape_website(TEAM_ID)
+    if last_rating["region"] == "NO_DATA":
+        change_regional = ":x:"
     else:
-        if position_norway > last_rating["norway"]:
-            change_norway = ":arrow_down:"
-        elif position_norway < last_rating["norway"]:
-            change_norway = ":arrow_up:"
+        if position_regional > last_rating["region"]:
+            change_regional = ":arrow_down:"
+        elif position_regional < last_rating["region"]:
+            change_regional = ":arrow_up:"
         else:
-            change_norway = ":arrow_right:"
+            change_regional = ":arrow_right:"
 
     time_now = pytz.timezone(
         "Europe/Oslo").localize(datetime.datetime.now().replace(microsecond=0)).isoformat()
@@ -103,7 +103,7 @@ def main():
         "avatar_url": DISCORD_WEBHOOK_URL,
         "embeds": [{
             "title": "CTFTime ranking update",
-            "description": f"World: {change} {position}\nNorway: {change_norway} {position_norway}",
+            "description": f"World: {change} {position}\nRegion: {change_regional} {position_regional}",
             "timestamp": time_now,
             "color": 11610890,
             "fields": [{
@@ -112,14 +112,14 @@ def main():
                 "inline": True
             }, {
                 "name": "Last rating",
-                "value": f"World: {last_rating['world']}\nNorway: {last_rating['norway']}",
+                "value": f"World: {last_rating['world']}\nRegion: {last_rating['region']}",
                 "inline": True
             }]
         }]
     })
 
     collection.insert_one(
-        {"checked_at": time_now, "norway": position_norway, "world": position})
+        {"checked_at": time_now, "region": position_regional, "world": position})
 
 
 if __name__ == "__main__":
