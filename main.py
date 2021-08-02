@@ -21,7 +21,6 @@ TEAM_ID = "137561"
 
 HEADERS = {"User-Agent": "Cluster0"}
 
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/871858702695678042/oztUEs7wBJ5bVp9UI-fKBBNtBdZDKj17zQGA9ysHULEJ-4ljT2PndNBcn2tXG3jUyOog"
 PFP_URL = "https://cdn.discordapp.com/attachments/719605546101113012/731453497479790672/ctftime.png"
 
 
@@ -44,12 +43,20 @@ def get_world_rating(team_id):
     return int(response.json()["rating"][0]["2021"]["rating_place"])
 
 
-def post_discord_message(data):
+def post_discord_message(webhook,data):
     """Posts to the discord webhook url"""
-    requests.post(DISCORD_WEBHOOK_URL, json=data)
+    requests.post(webhook, json=data)
 
 
 def main():
+    
+    parser = argparse.ArgumentParser()
+
+    webhooks_group = parser.add_mutually_exclusive_group(required=True)
+    webhooks_group.add_argument('-w', '--webhooks', metavar='url', nargs='+',
+                                help='a discord webhook which the data will be send to')
+    args = parser.parse_args()
+    
     """The main function that will be ran when the script runs"""
     last_entry = collection.find_one(sort=[("_id", pymongo.DESCENDING)])
     try:
@@ -97,7 +104,7 @@ def main():
             {"checked_at": time_now, "world": position})
 
 
-        post_discord_message({
+        post_discord_message(args.webhooks,{
             "username": "CTFTime",
             "avatar_url": PFP_URL,
             "embeds": [{
