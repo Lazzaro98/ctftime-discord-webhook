@@ -21,7 +21,7 @@ TEAM_ID = "137561"
 
 HEADERS = {"User-Agent": "Cluster0"}
 
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/871858702695678042/oztUEs7wBJ5bVp9UI-fKBBNtBdZDKj17zQGA9ysHULEJ-4ljT2PndNBcn2tXG3jUyOog"
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/871900172634968125/j2vRq7OOVnoMGZkQdqR4hT2-xUAaLAwkpVYrFCzmNd0B7oQP8zWVX20Po-tT306GSQwr"
 PFP_URL = "https://cdn.discordapp.com/attachments/719605546101113012/731453497479790672/ctftime.png"
 
 
