@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Script to send an embed to a discord channel with CTFTime scores"""
-
+import argparse
 import datetime
 import os
 
